@@ -146,7 +146,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                         }
                         var currentUrl = document.URL;
                         currentUrl = currentUrl.substring(0,currentUrl.indexOf("?"));
-                        var url = "https://dashboard.llamacoin.com/auth?response_type=code"
+                        var url = "https://dashboard.gocoin.com/auth?response_type=code"
                                     + "&client_id=" + clientId
                                     + "&redirect_uri=" + currentUrl
                                     + "&scope=user_read+merchant_read_write+invoice_read_write";
@@ -274,7 +274,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                     $order->add_order_note(var_export($invoice['error']));
                     $woocommerce->add_error(__('Error creating Gocoin invoice.  Please try again or try another payment method.'));
                 } else {
-                    $url = "https://gateway.llamacoin.com/merchant/".$invoice->merchant_id."/invoices/".$invoice->id;
+                    $url = "https://gateway.gocoin.com/merchant/".$invoice->merchant_id."/invoices/".$invoice->id;
                     $woocommerce->cart->empty_cart();
                     return array(
                         'result' => 'success',

@@ -25,8 +25,8 @@ class Client {
     private $default_options = array (
                   'client_id' => null,
                   'client_secret' =>null,
-                  'host' => 'api.llamacoin.com',
-                  'dashboard_host' => 'dashboard.llamacoin.com',
+                  'host' => 'api.gocoin.com',
+                  'dashboard_host' => 'dashboard.gocoin.com',
                   'port' => null,
                   'path' => '/api',
                   'api_version' => 'v1',

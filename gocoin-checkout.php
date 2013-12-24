@@ -55,9 +55,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 // Define user set variables
                 $this->title = $this->settings['title'];
                 $this->description = $this->settings['description'];
-
-				// Actions
-				add_action('woocommerce_update_options_payment_gateways_'.$this->id, array(&$this, 'process_admin_options'));
+                
+                // Actions
+                add_action('woocommerce_update_options_payment_gateways_'.$this->id, array(&$this, 'process_admin_options'));
             }
 
             /**

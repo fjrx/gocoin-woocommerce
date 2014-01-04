@@ -41,6 +41,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
             public function __construct() { 
                 $this->id = 'gocoin';
+                $this->icon = plugin_dir_url(__FILE__).'gocoin-icon.png';
                 $this->has_fields = false;
 
                 // Load the form fields.
@@ -50,12 +51,12 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 $this->init_settings();
 
                 // Create client for gocoin
-                $this->client = $this->create_client();  
+                $this->client = $this->create_client(); 
 
                 // Define user set variables
                 $this->title = $this->settings['title'];
                 $this->description = $this->settings['description'];
-                
+
                 // Actions
                 add_action('woocommerce_update_options_payment_gateways_'.$this->id, array(&$this, 'process_admin_options'));
             }
@@ -132,9 +133,11 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 <table class="form-table">
                 <?php
                 // Generate the HTML For the settings form.
-                $this->generate_settings_html();
+                    $this->generate_settings_html();
                 ?>
                 </table>
+                <input type="hidden" id="cid" value="<?php echo $this->settings['clientId']?>"/>
+                <input type="hidden" id="csec" value="<?php echo $this->settings['clientSecret']?>"/>
                 <script type="text/javascript">
                     function getAuthUrl() {
                         var clientId = document.getElementById('woocommerce_gocoin_clientId').value;
@@ -147,12 +150,20 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                             alert('Please input Client Secret!');
                             return;
                         }
+                        
+                        var cid = document.getElementById('cid').value;
+                        var csec = document.getElementById('csec').value;
+                        if (clientId != cid || clientSecret != csec) {
+                            alert('Please save changed Client Id and Client Secret Key first!');
+                            return;
+                        }
+                        
                         var currentUrl = document.URL;
                         currentUrl = currentUrl.substring(0,currentUrl.indexOf("?"));
                         var url = "https://dashboard.gocoin.com/auth?response_type=code"
                                     + "&client_id=" + clientId
                                     + "&redirect_uri=" + currentUrl
-                                    + "&scope=user_read+merchant_read_write+invoice_read_write";
+                                    + "&scope=user_read+merchant_read+invoice_read_write";
                         window.location.href = url;
                     }
                 </script>

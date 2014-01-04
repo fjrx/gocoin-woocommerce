@@ -10,7 +10,7 @@ Configuration
 2.  In Admin panel click Woocommerce > Settings > Payment Gateways > Gocoin .
 	1). Set client key and client id.
 	2). input access token or click "Get Access token from Gocoin" button. ( You will be redirected to dashboard.gocoin.com. Allow permission to access your info then you will be redirected back to this page).
-
+        Note: Before you click "Get Access token from Gocoin" button, please save client id and secret key first.
 Usage
 -----
 When a shopper chooses the Gocoin payment method and places their order, they will be redirected to gateway.gocoin.com to pay.  

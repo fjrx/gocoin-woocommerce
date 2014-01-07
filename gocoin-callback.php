@@ -35,10 +35,10 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 switch($response->event)
                 {
                     case 'invoice_created':
-                    case 'invoice_paid':
-                        break;
                     case 'invoice_confirmed':
                     case 'invoice_complete':
+                      break;
+                    case 'invoice_paid':
                         if ( in_array($order->status, array('on-hold', 'pending', 'failed' ) ) )
                         {
                             $order->payment_complete();

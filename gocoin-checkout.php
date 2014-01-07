@@ -1,15 +1,13 @@
 <?php
 /*
-*    Plugin Name: Gocoin Woocommerce Payment gateway
+*    Plugin Name: Official GoCoin WooCommerce Plugin
 *    Plugin URI: http://www.gocoin.com
-*    Description: This plugin adds the Gocion payment gateway to your Woocommerce plugin.  Woocommerce is required.
+*    Description: This plugin adds the GoCoin Payment Gateway to your WooCommerce Shopping Cart.  WooCommerce is required.
 *    Version: 1.0
-*    Author: Roman Antonich 
+*    Author: GoCoin
 */
 
-require_once('gocoin.PHP/src/api.php');
-require_once('gocoin.PHP/src/auth.php');
-require_once('gocoin.PHP/src/client.php');
+require_once('gocoin-php/src/client.php');
 
 session_start();
 
@@ -41,6 +39,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
             public function __construct() { 
                 $this->id = 'gocoin';
+                $this->method_title = 'GoCoin';
+                $this->method_description = 'Accept Bitcoin transactions using the GoCoin Payment Gateway';
                 $this->icon = plugin_dir_url(__FILE__).'gocoin-icon.png';
                 $this->has_fields = false;
 
@@ -79,7 +79,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
             }
 
             /**
-            * initialize woocommerce settings fiels for gocoin payment gateway
+            * initialize woocommerce settings fields for gocoin payment gateway
             * 
             */
 
@@ -88,35 +88,35 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                     'enabled' => array(
                         'title' => __( 'Enable/Disable', 'woothemes' ),
                         'type' => 'checkbox',
-                        'label' => __( 'Enable Gocoin Payment', 'woothemes' ),
+                        'label' => __( 'Enable GoCoin', 'woothemes' ),
                         'default' => 'yes'
                     ),
                     'title' => array(
                         'title' => __( 'Title', 'woothemes' ),
                         'type' => 'text',
                         'description' => __( 'Payment Gateway title in checkout page.', 'woothemes' ),
-                        'default' => __( 'Gocoin', 'woothemes' )
+                        'default' => __( 'GoCoin', 'woothemes' )
                     ),
                     'description' => array(
                         'title' => __( 'Customer Message', 'woothemes' ),
                         'type' => 'textarea',
                         'description' => __( 'Message which will show in checkout page.', 'woothemes' ),
-                        'default' => 'You will be redirected to Gocoin.com to complete your purchase.'
+                        'default' => 'You will be redirected to GoCoin.com to complete your purchase.'
                     ),
                     'clientId' => array(
                         'title' => __('Client ID', 'woothemes'),
                         'type' => 'text',
-                        'description' => __('Enter the Client ID for the App you created at Gocoin.com'),
+                        'description' => __('Enter the Client ID for the App you created at GoCoin.com'),
                     ),
                     'clientSecret' => array(
                         'title' => __('Client Secret', 'woothemes'),
                         'type' => 'text',
-                        'description' => __('Enter the Client Secret for the App you created at Gocoin.com'),
+                        'description' => __('Enter the Client Secret for the App you created at GoCoin.com'),
                     ),
                     'accessToken' => array(
                         'title' => __('Access Token', 'woothemes'),
-                        'type' => 'accesstoken',
-                        'description' => __('Enter the Access Token you created at Gocoin.com'),
+                        'type' => 'password',
+                        'description' => __('Enter the Access Token you created at GoCoin.com'),
                     ),
                 );
             }
@@ -128,8 +128,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
             public function admin_options() {
             ?>
-                <h3><?php _e('Gocoin Payment', 'woothemes'); ?></h3>
-                <p><?php _e('Allows bitcoin payments via Gocoin.com.', 'woothemes'); ?></p>
+                <h3><?php _e('GoCoin Payment Gateway', 'woothemes'); ?></h3>
+                <p><?php _e('Allows Bitcoin payments via GoCoin.com.', 'woothemes'); ?></p>
                 <table class="form-table">
                 <?php
                 // Generate the HTML For the settings form.
@@ -143,7 +143,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                         var clientId = document.getElementById('woocommerce_gocoin_clientId').value;
                         var clientSecret = document.getElementById('woocommerce_gocoin_clientSecret').value;
                         if (!clientId) {
-                            alert('Please input clientId!');
+                            alert('Please input Client Id!');
                             return;
                         }
                         if (!clientSecret) {
@@ -179,7 +179,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
             * @return String $html
             */
 
-            public function generate_accesstoken_html( $key, $data ) {
+            public function generate_password_html( $key, $data ) {
                 global $woocommerce;
                 $html = '';
 
@@ -238,7 +238,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 $html .= '<input class="input-text regular-input ' . esc_attr( $data['class'] ) . '" type="' . esc_attr( $data['type'] ) . '" name="' . esc_attr( $this->plugin_id . $this->id . '_' . $key ) . '" id="' . esc_attr( $this->plugin_id . $this->id . '_' . $key ) . '" style="' . esc_attr( $data['css'] ) 
                 . '" value="' . esc_attr( $token ) 
                 . '" placeholder="' . esc_attr( $data['placeholder'] ) . '" ' . disabled( $data['disabled'], true, false ) . ' ' . implode( ' ', $custom_attributes ) . ' />';
-                $html .= '<a href="#" class="button-primary" onclick="getAuthUrl();"> Get Access token from Gocoin</a>';
+                $html .= '<a style="margin-left: 10px" href="#" class="button-primary" onclick="getAuthUrl();"> Get Access Token from GoCoin</a>';
                 if ( $description )
                 $html .= ' <p class="description">' . wp_kses_post( $description ) . '</p>' . "\n";
 
@@ -261,7 +261,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 global $woocommerce, $wpdb;
 
                 $order = &new WC_Order( $order_id );
-                $order->update_status('on-hold', __('Awaiting payment notification from Gocoin.com', 'woothemes'));
+                $order->update_status('on-hold', __('Awaiting payment notification from GoCoin.com', 'woothemes'));
 
                 // invoice options
                 $redirect_url = add_query_arg('key', $order->order_key, add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_thanks_page_id'))));				
@@ -286,7 +286,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 $invoice = createInvoice($order_id, $order->order_total, $options, $this->client );
                 if (isset($invoice->error)) {
                     $order->add_order_note(var_export($invoice['error']));
-                    $woocommerce->add_error(__('Error creating Gocoin invoice.  Please try again or try another payment method.'));
+                    $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
                 } else {
                     $url = "https://gateway.gocoin.com/merchant/".$invoice->merchant_id."/invoices/".$invoice->id;
                     $woocommerce->cart->empty_cart();

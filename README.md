@@ -51,8 +51,8 @@ More information on creating GoCoin connected applications can be found [here](h
     <br>
 ![step 3](https://dl.dropboxusercontent.com/spa/pvghiam459l0yh2/2duixbff.png)
  
-4. MAKE SURE YOU SAVED YOUR CLIENT ID AND SECRET BEFORE COMPLETING THIS STEP. Click "Get Access token from GoCoin" button. You will be redirected to dashboard.gocoin.com. Allow permission to access your info then you will be redirected back to this page. The Access Token will have populated the field.  
-5. SAVE AGAIN. You are now ready to accept payments with GoCoin!
+5. MAKE SURE YOU SAVED YOUR CLIENT ID AND SECRET BEFORE COMPLETING THIS STEP. Click "Get Access token from GoCoin" button. You will be redirected to dashboard.gocoin.com. Allow permission to access your info then you will be redirected back to this page. The Access Token will have populated the field.  
+6. SAVE AGAIN. You are now ready to accept payments with GoCoin!
 
 
 

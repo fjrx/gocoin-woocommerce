@@ -265,7 +265,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 $order->update_status('on-hold', __('Awaiting payment notification from GoCoin.com', 'woothemes'));
 
                 // invoice options
-                $redirect_url = get_option('siteurl').add_query_arg('key', $order->order_key, add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_thanks_page_id'))));				
+                $redirect_url = $this->get_return_url($this->order);				
                 $callback_url = get_option('siteurl')."/?gocoin_callback=1"; 				
                 $currency = get_woocommerce_currency(); 				
 

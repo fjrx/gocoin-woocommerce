@@ -38,6 +38,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
             */
 
             public function __construct() { 
+
                 $this->id = 'gocoin';
                 $this->method_title = 'GoCoin';
                 $this->method_description = 'Accept Bitcoin transactions using the GoCoin Payment Gateway';
@@ -264,7 +265,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 $order->update_status('on-hold', __('Awaiting payment notification from GoCoin.com', 'woothemes'));
 
                 // invoice options
-                $redirect_url = add_query_arg('key', $order->order_key, add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_thanks_page_id'))));				
+                $redirect_url = get_option('siteurl').add_query_arg('key', $order->order_key, add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_thanks_page_id'))));				
                 $callback_url = get_option('siteurl')."/?gocoin_callback=1"; 				
                 $currency = get_woocommerce_currency(); 				
 
@@ -306,12 +307,20 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
         return $methods;
     }
 
+
+
     add_filter('woocommerce_payment_gateways', 'add_Gocoin_gateway' );
 
     add_action('plugins_loaded', 'createWoocommerceGocoinGateway', 0);
 
     if (isset($_GET['code']) && !isset($_GET['section'])) {
+      if (version_compare( WOOCOMMERCE_VERSION, '2.1.0', '>=')) {
+        // Pre 2.0
         header("Location: /wp-admin/admin.php?page=woocommerce_settings&tab=payment_gateways&section=WC_Gocoin&code=".$_GET['code']);
+      } else {
+        // 2.0
+        header("Location: /wp-admin/admin.php?page=wc-settings&tab=checkout&section=wc_gocoin&code=".$_GET['code']);
+      }
         exit(1);
     }  
 	

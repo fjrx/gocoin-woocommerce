@@ -1,3 +1,5 @@
+IF YOU ARE USING WOOCOMMERCE 2.1 OR ABOVE, PLEASE USE THE BRANCH WOOCOMMERCE-TWO-ONE
+
 Version 0.1.0
 
 ©2014 GoCoin Holdings Limited and GoCoin International Group of companies hereby grants you permission to utilize a copy of this software and documentation in connection with your use of the GoCoin.com service subject the the published Terms of Use and Privacy Policy published on the site and subject to change from time to time at the discretion of GoCoin.<br><br>

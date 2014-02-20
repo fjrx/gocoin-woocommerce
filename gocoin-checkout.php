@@ -3,7 +3,7 @@
 *    Plugin Name: Official GoCoin WooCommerce Plugin
 *    Plugin URI: http://www.gocoin.com
 *    Description: This plugin adds the GoCoin Payment Gateway to your WooCommerce Shopping Cart.  WooCommerce is required.
-*    Version: 1.0
+*    Version: 1.0.2
 *    Author: GoCoin
 */
 
@@ -266,7 +266,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 $order->update_status('on-hold', __('Awaiting payment notification from GoCoin.com', 'woothemes'));
 
                 // invoice options
-                $redirect_url = $this->get_return_url($this->order);				
+                if (version_compare(WOOCOMMERCE_VERSION, '2.1.0', '>=')) {
+                  // >= 2.1.0
+                  $redirect_url = $this->get_return_url($this->order);        
+                } else {
+                  // < 2.1.0
+                  $redirect_url = add_query_arg('key', $order->order_key, add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_thanks_page_id'))));
+                }
                 $callback_url = get_option('siteurl')."/?gocoin_callback=1"; 				
                 $currency = get_woocommerce_currency(); 				
 
@@ -285,7 +291,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                     'customer_email' => $order->billing_email,
                 );
 
-                $invoice = createInvoice($order_id, $order->order_total, $options, $this->client );
+                $invoice = createInvoice($order_id, $order->order_total, $options, $this->client);
                 if (isset($invoice->error)) {
                     $order->add_order_note(var_export($invoice['error']));
                     $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));

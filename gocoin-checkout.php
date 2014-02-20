@@ -8,6 +8,7 @@
 */
 
 require_once('gocoin-php/src/client.php');
+require_once(ABSPATH.'wp-admin/includes/plugin.php');
 
 session_start();
 
@@ -313,13 +314,16 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
     add_action('plugins_loaded', 'createWoocommerceGocoinGateway', 0);
 
+    $pluginroot = WP_PLUGIN_DIR;
+    $woo = 'woocommerce/woocommerce.php';
+    $woodata = get_plugin_data("$pluginroot/$woo");
     if (isset($_GET['code']) && !isset($_GET['section'])) {
-      if (version_compare( WOOCOMMERCE_VERSION, '2.1.0', '>=')) {
-        // Pre 2.0
-        header("Location: /wp-admin/admin.php?page=woocommerce_settings&tab=payment_gateways&section=WC_Gocoin&code=".$_GET['code']);
-      } else {
-        // 2.0
+      if (version_compare($woodata['Version'], '2.1.0', '>=')) {
+        // >= 2.1.0
         header("Location: /wp-admin/admin.php?page=wc-settings&tab=checkout&section=wc_gocoin&code=".$_GET['code']);
+      } else {
+        // < 2.1.0
+        header("Location: /wp-admin/admin.php?page=woocommerce_settings&tab=payment_gateways&section=WC_Gocoin&code=".$_GET['code']);
       }
         exit(1);
     }  

@@ -3,7 +3,7 @@
 *    Plugin Name: Official GoCoin WooCommerce Plugin
 *    Plugin URI: http://www.gocoin.com
 *    Description: This plugin adds the GoCoin Payment Gateway to your WooCommerce Shopping Cart.  WooCommerce is required.
-*    Version: 1.0.2
+*    Version: 1.0.3
 *    Author: GoCoin
 */
 
@@ -13,9 +13,9 @@ require_once(ABSPATH.'wp-admin/includes/plugin.php');
 session_start();
 
 /**
- * Check if WooCommerce is active
- **/
- 
+* Check if WooCommerce is active
+**/
+
 if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) 
 {
 
@@ -44,7 +44,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 $this->method_title = 'GoCoin';
                 $this->method_description = 'Accept Bitcoin transactions using the GoCoin Payment Gateway';
                 $this->icon = plugin_dir_url(__FILE__).'gocoin-icon.png';
-                $this->has_fields = false;
+                $this->has_fields = true;
 
                 // Load the form fields.
                 $this->init_form_fields();
@@ -68,6 +68,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
             * 
             * @return Client client
             */
+
             function create_client() {
                 $client = new Client( array(
                     'client_id' => $this->settings['clientId'],
@@ -81,8 +82,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
             }
 
             /**
-            * initialize woocommerce settings fields for gocoin payment gateway
-            * 
+            * Initialize woocommerce settings fields for gocoin payment gateway.
             */
 
             function init_form_fields() {
@@ -125,7 +125,6 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
             /**
             * create settings page for gocoin gateway in woocommerce admin
-            *    
             */
 
             public function admin_options() {
@@ -250,6 +249,37 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
                 return $html;
             }
+            
+            /**
+            *  Add price currency fileds on payment gateway section.
+            */
+            
+            function payment_fields(){
+                if($this->description) echo wpautop(wptexturize($this->description));      
+                echo '<div class="form-row form-wide validate-required">';
+                echo '<label for="gocoin_coin_type">Coin Currency <abbr class="required" title="required">*</abbr></label>';
+                echo '<select id="gocoin_coin_type" name="coin_type" class="input-select">';
+                echo '<option value="" selected="selected">--Please Select--</option>';
+                echo '<option value="BTC">Bitcoin</option>';
+                echo '<option value="LTC">Litecoin</option>';
+                echo '</select>';
+                echo '</div>';  
+            }
+
+
+            /**
+            * Validate payment fields
+            */
+
+            function validate_fields() {
+                global $woocommerce;
+                $coin_type = $_POST['coin_type'];
+                if ($coin_type == "") {
+                    $woocommerce->add_error( 'CoinType is required' );
+                } else {
+                    return true;
+                }
+            }
 
             /**
             * Process payment for woocommerce checkout
@@ -261,6 +291,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 require 'gocoin-lib.php';
 
                 global $woocommerce, $wpdb;
+                
+                $coin_type = $_POST['coin_type'];
 
                 $order = &new WC_Order( $order_id );
                 $order->update_status('on-hold', __('Awaiting payment notification from GoCoin.com', 'woothemes'));
@@ -277,6 +309,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                 $currency = get_woocommerce_currency(); 				
 
                 $options = array (
+                    'coin_type' => $coin_type,
                     'currency' => $currency,
                     'callback_url' => $callback_url,
                     'redirect_url' => $redirect_url,
@@ -333,5 +366,5 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
       }
         exit(1);
     }  
-	
+
 }

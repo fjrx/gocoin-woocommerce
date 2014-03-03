@@ -2,7 +2,7 @@
 
 /**
 *   PHP library including functions to process gocion payment
-*   Version: 1.0.3
+*   Version: 0.1.3
 *   Author: Roman Antonich
 */  
 

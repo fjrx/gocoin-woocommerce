@@ -1,7 +1,7 @@
 <?php
 /**
 *   Including functions to process callback after payment
-*   Version: 1.0
+*   Version: 0.1.3
 *   Author: Roman Antonich 
 */  
 

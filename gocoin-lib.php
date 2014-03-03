@@ -2,8 +2,8 @@
 
 /**
 *   PHP library including functions to process gocion payment
-*   Version: 1.0
-*   Author: Roman Antonich 
+*   Version: 0.1.3
+*   Author: Roman Antonich
 */  
 
 /**
@@ -21,7 +21,7 @@ function createInvoice($orderId, $price, $options = array(), $client) {
 
     // data for invoice creation
     $my_data = array (
-        "price_currency" => "BTC",
+        "price_currency" => $options['coin_type'],
         "base_price" => $price,
         "base_price_currency" => "USD",//$options['currency'],
         "confirmations_required" => 6,

@@ -1,5 +1,4 @@
-
-Version 0.1.2
+Version 0.1.3
 
 ©2014 GoCoin Holdings Limited and GoCoin International Group of companies hereby grants you permission to utilize a copy of this software and documentation in connection with your use of the GoCoin.com service subject the the published Terms of Use and Privacy Policy published on the site and subject to change from time to time at the discretion of GoCoin.<br><br>
 
@@ -13,6 +12,8 @@ The order status in the admin panel will be "on-hold" when the order is placed a
 
 #### Important Note: 
 Version 0.1.0 of this plugin only supports US Dollars as the Base Currency. Please make sure your WooCommerce Currency is set to US Dollars. Support for additional currencies is coming soon. 
+
+This plugin now supports Litecoin as well as Bitcoin
 
 ### 1. Installation
 [Wordpress](http://www.wordpress.org) and the [WooCommerce extension](http://wordpress.org/plugins/woocommerce/) must be installed before installing this plugin.
@@ -64,5 +65,5 @@ More information on creating GoCoin connected applications can be found [here](h
 
 
 
-	
-	
+  
+  

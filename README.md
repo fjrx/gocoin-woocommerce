@@ -13,6 +13,8 @@ The order status in the admin panel will be "on-hold" when the order is placed a
 #### Important Note: 
 Version 0.1.0 of this plugin only supports US Dollars as the Base Currency. Please make sure your WooCommerce Currency is set to US Dollars. Support for additional currencies is coming soon. 
 
+This plugin now supports Litecoin as well as Bitcoin
+
 ### 1. Installation
 [Wordpress](http://www.wordpress.org) and the [WooCommerce extension](http://wordpress.org/plugins/woocommerce/) must be installed before installing this plugin.
 

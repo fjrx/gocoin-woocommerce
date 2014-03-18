@@ -5,8 +5,8 @@ Version 0.1.3
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE DEVELOPERS OR AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.<br><br>
 
 ## Using the Official GoCoin WooCommerce Plugin
-When a shopper chooses the GoCoin payment method and places their order, they will be redirected to gateway.GoCoin.com to pay.  
-GoCoin will send a notification to your server which this plugin handles.  Then the customer will be redirected to n order summary page.  
+When a shopper chooses the GoCoin payment method and places their order, they will be redirected to gateway.gocoin.com to pay.  
+GoCoin will send a notification to your server which this plugin handles.  Then the customer will be redirected to an order summary page.  
 
 The order status in the admin panel will be "on-hold" when the order is placed and "processing" if payment has been confirmed. 
 
@@ -47,7 +47,7 @@ More information on creating GoCoin connected applications can be found [here](h
 2. In WooCommerce > Settings, make sure Currency is set to US Dollars <br><br>
 ![usd](https://dl.dropboxusercontent.com/spa/pvghiam459l0yh2/j4a-5r70.png)<br>
 
-3. Disable 'Order Processing' email by unchecking the box under Emails > Processing Order <br>
+3. Disable the 'Order Processing' email by unchecking the box under Emails > Processing Order <br>
 
 4. Go to WooCommerce > Settings > Payment Gateways > GoCoin <br>
   a) Enable GoCoin by Checking the box <br>

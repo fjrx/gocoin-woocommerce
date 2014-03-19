@@ -44,7 +44,10 @@ function createInvoice($orderId, $price, $options = array(), $client) {
 
     $user = $client->api->user->self();
     if (!$user) {
-        return array('error' => $client->getError());
+        $response = new stdClass();
+        //$response->error = $client->getError();
+        $response->error = 'Error creating GoCoin invoice.  Please try again or use another payment options.';
+        return $response;
     }
     // stick merchant id into params for invoice creation
     $invoice_params = array(

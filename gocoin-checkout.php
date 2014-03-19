@@ -326,9 +326,11 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
                 $invoice = createInvoice($order_id, $order->order_total, $options, $this->client);
                 if (isset($invoice->error)) {
-                    $order->add_order_note(var_export($invoice['error']));
+                    
+                    $order->add_order_note(var_export($invoice->error));
                     $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
-                } else {
+                }
+                else {
                     $url = "https://gateway.gocoin.com/merchant/".$invoice->merchant_id."/invoices/".$invoice->id;
                     $woocommerce->cart->empty_cart();
                     return array(

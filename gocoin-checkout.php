@@ -257,6 +257,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 echo '<select id="gocoin_coin_type" name="coin_type" class="input-select">';
                 echo '<option value="" selected="selected">--Please Select--</option>';
                 echo '<option value="BTC">Bitcoin</option>';
+                echo '<option value="XDG">Dogecoin</option>'
                 echo '<option value="LTC">Litecoin</option>';
                 echo '</select>';
                 echo '</div>';

@@ -138,6 +138,14 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         
                         var cid = document.getElementById('cid').value;
                         var csec = document.getElementById('csec').value;
+                        if (!clientId) {
+                          alert('Please input Client Id!');
+                          return;
+                        }
+                        if (!clientSecret) {
+                          alert('Please input Client Secret!');
+                          return;
+                        }
                         if (document.getElementById('woocommerce_gocoin_accessToken').value != '') {
                             alert('Please clear your current access token and save before proceeding');
                             return;
@@ -230,7 +238,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 $html .= '<input class="input-text regular-input ' . esc_attr($data['class']) . '" type="' . esc_attr($data['type']) . '" name="' . esc_attr($this->plugin_id . $this->id . '_' . $key) . '" id="' . esc_attr($this->plugin_id . $this->id . '_' . $key) . '" style="' . esc_attr($data['css'])
                         . '" value="' . esc_attr($token)
                         . '" placeholder="' . esc_attr($data['placeholder']) . '" ' . disabled($data['disabled'], true, false) . ' ' . implode(' ', $custom_attributes) . ' />';
-                $html .= '<a style="margin-left: 10px" href="#" class="button-primary" onclick="getAuthUrl();"> Get Access Token from GoCoin</a>';
+                $html .= '<a style="margin-left: 10px" href="#" class="button-primary" onclick="getAuthUrl(); return false;"> Get Access Token from GoCoin</a>';
                 if ($description)
                     $html .= ' <p class="description">' . wp_kses_post($description) . '</p>' . "\n";
 

@@ -3,7 +3,7 @@
  *    Plugin Name: Official GoCoin WooCommerce Plugin
  *    Plugin URI: http://www.gocoin.com
  *    Description: This plugin adds the GoCoin Payment Gateway to your WooCommerce Shopping Cart.  WooCommerce is required.
- *    Version: 0.1.3
+ *    Version: 0.1.4
  *    Author: GoCoin
  */
 require_once('gocoin-php/src/GoCoin.php');
@@ -307,7 +307,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                          "notification_level" => "all",
                          "callback_url" => $callback_url,
                          "redirect_url" => $redirect_url,
-                         "order_id" => $orderId,
+                         "order_id" => $order_id,
                          "customer_name" => $order->billing_first_name . ' ' . $order->billing_last_name,
                          "customer_address_1" => $order->billing_address_1,
                          "customer_address_2" => $order->billing_address_2,

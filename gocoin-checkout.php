@@ -135,17 +135,13 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     function getAuthUrl() {
                         var clientId = document.getElementById('woocommerce_gocoin_clientId').value;
                         var clientSecret = document.getElementById('woocommerce_gocoin_clientSecret').value;
-                        if (!clientId) {
-                            alert('Please input Client Id!');
-                            return;
-                        }
-                        if (!clientSecret) {
-                            alert('Please input Client Secret!');
-                            return;
-                        }
-
+                        
                         var cid = document.getElementById('cid').value;
                         var csec = document.getElementById('csec').value;
+                        if (document.getElementById('woocommerce_gocoin_accessToken').value != '') {
+                            alert('Please clear your current access token and save before proceeding');
+                            return;
+                        }
                         if (clientId != cid || clientSecret != csec) {
                             alert('Please save changed Client Id and Client Secret Key first!');
                             return;
@@ -158,11 +154,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                 + "&client_id=" + clientId
                                 + "&redirect_uri=" + currentUrl
                                 + "&scope=user_read+merchant_read+invoice_read_write";
-                        //window.location.href = url;
-                        
-                        alert(url);
-                        var win = window.open(url, "_blank", '');
-                        return; 
+                        window.location.href = url;
                     }
                 </script>
                 <?php
@@ -218,15 +210,18 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                     $html .= '<img class="help_tip" data-tip="' . esc_attr($tip) . '" src="' . $woocommerce->plugin_url() . '/assets/images/help.png" height="16" width="16" />';
 
                 $token = $this->client->getToken();
-                if (isset($_GET['code'])) {
-                    $this->client->initToken();
-                    $b_auth = $this->client->authorize_api();
-
-                    if ($b_auth) {
-                        $token = $this->client->getToken();
-                    } else {
-                        var_dump($this->client->getError());
+                if (!isset($token)) {
+                  if (isset($_GET['code'])) {
+                    $code = $_GET['code'];
+                    $client_id = $this->settings['clientId'];
+                    $client_secret = $this->settings['clientSecret'];
+                    $redirect_uri = get_current_url();
+                    try {
+                        $token = GoCoin::requestAccessToken($client_id, $client_secret, $code, $redirect_uri);
+                    } catch (Exception $e) {
+                        echo "Problem in getting Token: " . $e->getMessage();
                     }
+                  }
                 }
                 $token = isset($token) ? $token : $this->get_option($key);
                 $html .= '</th>' . "\n";
@@ -270,7 +265,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 global $woocommerce;
                 $coin_type = $_POST['coin_type'];
                 if ($coin_type == "") {
-                    $woocommerce->add_error('CoinType is required');
+                    $woocommerce->add_error('Coin type is required');
                 } else {
                     return true;
                 }
@@ -329,8 +324,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 $client_secret = $this->settings['clientSecret'];
                 $access_token = $this->settings['accessToken'];
 
-                if (empty($client_id) || empty($client_secret) || empty($access_token)) {
-                    $woocommerce->add_error(__('1Error creating GoCoin invoice.  Please try again or try another payment method.'));
+                if (empty($access_token)) {
+                    $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
                 }
                    
                    try {
@@ -376,7 +371,30 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
         $methods[] = 'WC_Gocoin';
         return $methods;
     }
+    function get_current_url() {
+      // This is taken from GoCoin php and reworked to avoid query params.
+        if (isset($_SERVER['HTTPS']) &&
+            ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
+            isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
+            $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+          $protocol = 'https://';
+        }
+        else {
+          $protocol = 'http://';
+        }
+        $currentUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $parts = parse_url($currentUrl);
 
+        // use port if non default
+        $port =
+          isset($parts['port']) &&
+          (($protocol === 'http://' && $parts['port'] !== 80) ||
+           ($protocol === 'https://' && $parts['port'] !== 443))
+          ? ':' . $parts['port'] : '';
+
+        // rebuild
+        return $protocol . $parts['host'] . $port . $parts['path'];
+    }
     add_filter('woocommerce_payment_gateways', 'add_Gocoin_gateway');
 
     add_action('plugins_loaded', 'createWoocommerceGocoinGateway', 0);

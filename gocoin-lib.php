@@ -1,7 +1,7 @@
 <?php
 /**
 *   PHP library including functions to process gocoin payment
-*   Version: 0.1.4
+*   Version: 0.2.0
 */ 
 
  

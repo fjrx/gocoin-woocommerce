@@ -239,7 +239,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 global $woocommerce;
                 $coin_type = $_POST['coin_type'];
                 if ($coin_type == "") {
-                    $woocommerce->add_error('Coin Type is required');
+                    $woocommerce->add_error('Coin type is required');
                 } else {
                     return true;
                 }
@@ -290,13 +290,13 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                          "customer_email"           => $order->billing_email,
                      );
                 $key                          = $this->getGUID();
-                $signature                    = $this->getSignatureText($options,$key );
+                $signature                    = $this->getSignatureText($options,$key);
                 $options['user_defined_8']    = $signature;
                 
                 $access_token = $this->settings['accessToken'];
 
                 if (empty($access_token)) {
-                    $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
+                    $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
                 }
                    
                    try {
@@ -307,11 +307,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             $invoice = GoCoin::createInvoice($access_token, $merchant_id, $options);
                             if (isset($invoice->errors)) {
                                 $order->add_order_note(var_export($invoice->error));
-                                $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
+                                $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
                             } elseif (isset($invoice->error)) {
 
                                 $order->add_order_note(var_export($invoice->error));
-                                $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
+                                $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
                             } elseif (isset($invoice->merchant_id) && $invoice->merchant_id != '' && isset($invoice->id) && $invoice->id != '') {
                                 $url = "https://gateway.gocoin.com/merchant/" . $invoice->merchant_id . "/invoices/" . $invoice->id;
                                 
@@ -343,7 +343,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         }
                     } else {
                         // $order->add_order_note(var_export($invoice->error));
-                        $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
+                        $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
                     }
                 } catch (Exception $e) {
                     //$order->add_order_note(var_export($invoice->error));
@@ -356,7 +356,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             public function getDbTable() {
                   global $wpdb;
                     
-                   $sql_ipn = "CREATE TABLE IF NOT EXISTS `".$wpdb->prefix.gocoin_ipn."` (
+                  $sql_ipn = "CREATE TABLE IF NOT EXISTS `".$wpdb->prefix.gocoin_ipn."` (
                               `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
                               `order_id` int(10) unsigned DEFAULT NULL,
                               `invoice_id` varchar(200) NOT NULL,
@@ -372,7 +372,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                               `fingerprint` varchar(250) NOT NULL,
                               PRIMARY KEY (`id`)
                             ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
-                   return  $wpdb->get_results($sql_ipn);
+                  return  $wpdb->get_results($sql_ipn);
 
               }
               

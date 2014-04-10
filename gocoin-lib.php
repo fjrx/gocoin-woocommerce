@@ -1,8 +1,9 @@
 <?php
 /**
-*   PHP library including functions to process gocion payment
+*   PHP library including functions to process gocoin payment
 *   Version: 0.1.4
-*    
+*/ 
+
  
 /**
 * Get Post Data for callback

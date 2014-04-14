@@ -99,9 +99,11 @@
 
     function getFPStatus($details){
         global $wpdb;
-        $data = $wpdb->get_row("SELECT invoice_id FROM " . $wpdb->prefix . "gocoin_ipn where invoice_id = '".$details['invoice_id']."' and   
-            fingerprint = '".$details['fingerprint']."'       
-         "); 
+         $data = $wpdb->get_row(
+                $wpdb->prepare("SELECT invoice_id FROM " . $wpdb->prefix . "gocoin_ipn where invoice_id = %s and   
+            fingerprint = %s  ",array($details['invoice_id'],$details['fingerprint']))
+                ); 
+        
         if(isset($data->invoice_id) && !empty($data->invoice_id)){
             return $data->invoice_id;
         }
@@ -109,15 +111,13 @@
     
     function updateTransaction($type = 'payment', $details) {
         global $wpdb;
-        $upSql="
-            update  ".$wpdb->prefix."gocoin_ipn set 
-                status       = '" . $details['status'] . "',   
-                updated_time = '" . $details['updated_time'] . "'   
-                where
-                invoice_id       = '" . $details['invoice_id'] . "' and   
-                order_id = '" . $details['order_id'] . "'       
-             ";
-       return  $wpdb->get_results($upSql);
+        $feild_array = array('status'       =>  $details['status'] ,   
+                      'updated_time' =>  $details['updated_time']
+                     );
+        $where_array = array('invoice_id'       =>  $details['invoice_id'] ,   
+                      'order_id' =>  $details['order_id']);
+        
+       return  $wpdb->update($wpdb->prefix."gocoin_ipn",$feild_array,$where_array);
     }
     
     function getNotifyData() {

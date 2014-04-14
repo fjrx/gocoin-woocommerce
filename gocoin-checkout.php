@@ -52,6 +52,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 
                 // DB Custom Db table
                 $this->getDbTable();
+                
             }
 
             /**
@@ -111,7 +112,9 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 <input type="hidden" id="cid" value="<?php echo $this->settings['clientId'] ?>"/>
                 <input type="hidden" id="csec" value="<?php echo $this->settings['clientSecret'] ?>"/>
                 <script type="text/javascript">
-                    var baseurl = '<?php echo get_site_url(); ?>';
+                    var baseurl = '';
+                     var code = '<?php ?>'
+                       
                     function getAuthUrl() {
                         var clientId = document.getElementById('woocommerce_gocoin_clientId').value;
                         var clientSecret = document.getElementById('woocommerce_gocoin_clientSecret').value;
@@ -130,15 +133,12 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             alert('Please save changed Client Id and Client Secret Key first!');
                             return;
                         }
-
-                        var currentUrl = baseurl+'/?gocoin_create_token=1';
                         
-                        var url = "https://dashboard.gocoin.com/auth?response_type=code"
-                                + "&client_id=" + clientId
-                                + "&redirect_uri=" + currentUrl
-                                + "&scope=user_read+merchant_read+invoice_read_write";
+                        var url ='<?php echo GoCoin::requestAuthorizationCode($this->settings["clientId"], $this->settings["clientSecret"], "user_read+merchant_read+invoice_read_write",get_site_url()."/?gocoin_create_token=1" );?>'
+                        
                         var strWindowFeatures = "location=yes,height=570,width=520,scrollbars=yes,status=yes";
-                        var win = window.open(url, "_blank", strWindowFeatures);
+                        var win = window.open(currentUrl+'code='+code, "_blank", strWindowFeatures);
+                       
                         return false;
                         
                     }
@@ -274,8 +274,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                          "price_currency"           => $coin_type,
                          "base_price"               => $order->order_total,
                          "base_price_currency"      => "USD", //$options['currency'],
-                         "confirmations_required"   => 6,
-                         "notification_level"       => "all",
                          "callback_url"             => $callback_url,
                          "redirect_url"             => $redirect_url,
                          "order_id"                 => $order_id,
@@ -354,48 +352,31 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             
             
             public function getDbTable() {
-                  global $wpdb;
-                    
-                  $sql_ipn = "CREATE TABLE IF NOT EXISTS `".$wpdb->prefix.gocoin_ipn."` (
-                              `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-                              `order_id` int(10) unsigned DEFAULT NULL,
-                              `invoice_id` varchar(200) NOT NULL,
-                              `url` varchar(400) NOT NULL,
-                              `status` varchar(100) NOT NULL,
-                              `btc_price` decimal(16,8) NOT NULL,
-                              `price` decimal(16,8) NOT NULL,
-                              `currency` varchar(10) NOT NULL,
-                              `currency_type` varchar(10) NOT NULL,
-                              `invoice_time` datetime NOT NULL,
-                              `expiration_time` datetime NOT NULL,
-                              `updated_time` datetime NOT NULL,
-                              `fingerprint` varchar(250) NOT NULL,
-                              PRIMARY KEY (`id`)
-                            ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
-                  return  $wpdb->get_results($sql_ipn);
+            global $wpdb;
 
-              }
+            $sql_ipn = "CREATE TABLE IF NOT EXISTS `".$wpdb->prefix.gocoin_ipn."` (
+                        `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                        `order_id` int(10) unsigned DEFAULT NULL,
+                        `invoice_id` varchar(200) NOT NULL,
+                        `url` varchar(400) NOT NULL,
+                        `status` varchar(100) NOT NULL,
+                        `btc_price` decimal(16,8) NOT NULL,
+                        `price` decimal(16,8) NOT NULL,
+                        `currency` varchar(10) NOT NULL,
+                        `currency_type` varchar(10) NOT NULL,
+                        `invoice_time` datetime NOT NULL,
+                        `expiration_time` datetime NOT NULL,
+                        `updated_time` datetime NOT NULL,
+                        `fingerprint` varchar(250) NOT NULL,
+                        PRIMARY KEY (`id`)
+                      ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
+            return  $wpdb->get_results($wpdb->prepare($sql_ipn,''));
+           }
               
               
             public function addTransaction_v1($type = 'payment', $details) {
                   global $wpdb;
-                  
-                  $sql="INSERT INTO ".$wpdb->prefix."gocoin_ipn (order_id, invoice_id, url, status, btc_price,
-                  price, currency, currency_type, invoice_time, expiration_time, updated_time,fingerprint)
-                  VALUES ( 
-                      '" . $details['order_id'] . "',
-                      '" . $details['invoice_id'] . "',
-                      '" . $details['url'] . "',
-                      '" . $details['status'] . "',
-                      '" . $details['btc_price'] . "',
-                      '" . $details['price'] . "',
-                      '" . $details['currency'] . "',
-                      '" . $details['currency_type'] . "',
-                      '" . $details['invoice_time'] . "',
-                      '" . $details['expiration_time'] . "',
-                      '" . $details['updated_time'] . "',
-                      '" . $details['fingerprint'] . "'  )";
-                   return  $wpdb->get_results($sql);
+                  return  $wpdb->insert($wpdb->prefix."gocoin_ipn",$details);
             }  
 
             
@@ -421,7 +402,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             public function getSignatureText($data, $uniquekey){
                 $query_str= '';
                 $include_params = array('price_currency','base_price','base_price_currency','order_id','customer_name','customer_city','customer_region','customer_postal_code','customer_country','customer_phone','customer_email');
-                //$escape_params = array('callback_url','redirect_url','customer_address_1','customer_address_2','user_defined_1','user_defined_2','user_defined_3','user_defined_4','user_defined_5','user_defined_6','user_defined_7','user_defined_8');
                 if(is_array($data))
                 {
                     ksort($data);

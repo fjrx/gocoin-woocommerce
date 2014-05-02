@@ -72,8 +72,8 @@
                     switch($response->event)
                     {
                     case 'invoice_created':
-                    case 'invoice_payment_received':
                       break;
+                    case 'invoice_payment_received':
                     case 'invoice_ready_to_ship':
                         if ( in_array($order->status, array('on-hold', 'pending', 'failed' ) ) )
                         {

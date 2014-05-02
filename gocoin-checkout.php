@@ -112,9 +112,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 <input type="hidden" id="cid" value="<?php echo $this->settings['clientId'] ?>"/>
                 <input type="hidden" id="csec" value="<?php echo $this->settings['clientSecret'] ?>"/>
                 <script type="text/javascript">
-                    var baseurl = '';
-                     var code = '<?php ?>'
-                       
+                    var currentUrl = '<?php echo get_site_url().'/?gocoin_create_token=1'; ?>';
+                   
                     function getAuthUrl() {
                         var clientId = document.getElementById('woocommerce_gocoin_clientId').value;
                         var clientSecret = document.getElementById('woocommerce_gocoin_clientSecret').value;
@@ -134,10 +133,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             return;
                         }
                         
-                        var url ='<?php echo GoCoin::requestAuthorizationCode($this->settings["clientId"], $this->settings["clientSecret"], "user_read+merchant_read+invoice_read_write",get_site_url()."/?gocoin_create_token=1" );?>'
+                       // var url ='<?php echo GoCoin::requestAuthorizationCode($this->settings["clientId"], $this->settings["clientSecret"], "user_read+merchant_read+invoice_read_write",get_site_url()."/?gocoin_create_token=1" );?>'
                         
+                        var url = "https://dashboard.gocoin.com/auth?response_type=code"
+                                + "&client_id=" + cid
+                                + "&redirect_uri=" + currentUrl
+                                + "&scope=user_read+merchant_read+invoice_read_write";
+
                         var strWindowFeatures = "location=yes,height=570,width=520,scrollbars=yes,status=yes";
-                        var win = window.open(currentUrl+'code='+code, "_blank", strWindowFeatures);
+                        var win = window.open(url, "_blank", strWindowFeatures);
                        
                         return false;
                         

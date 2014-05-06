@@ -72,14 +72,17 @@
                     switch($response->event)
                     {
                     case 'invoice_created':
-                      break;
                     case 'invoice_payment_received':
+
+                      break;
                     case 'invoice_ready_to_ship':
+                    if (($status == 'paid') || ($status == 'ready_to_ship')) {
                         if ( in_array($order->status, array('on-hold', 'pending', 'failed' ) ) )
                         {
                     
                             $order->payment_complete();
                         }
+                    }
                         break;
                 }
                 

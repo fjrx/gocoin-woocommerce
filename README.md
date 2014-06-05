@@ -32,7 +32,8 @@ Copy this folder and its contents into your plugins directory (wordpress/wp-cont
 Make sure your redirect_uri is equal to:
 
 ```
-https://YOUR_DOMAIN/wp-admin/admin.php
+https://YOUR_DOMAIN/WP_DIRECTORY
+// WP_DIRECTORY will be null if installed in web root
 ```
 
 ![new application](https://dl.dropboxusercontent.com/spa/pvghiam459l0yh2/d5tqf3zq.png)<br>

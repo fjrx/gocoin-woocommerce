@@ -46,7 +46,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 // Define user set variables
                 $this->title = $this->settings['title'];
                 $this->description = $this->settings['description'];
-
+                
+                if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
+                    $this->php_version_allowed = true ;
+                 }
+                else{
+                      $this->php_version_allowed = false ;
+                      $this->enabled = false;
+                }
+                
                 // Actions
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(&$this, 'process_admin_options'));
                 
@@ -59,47 +67,65 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
              * Initialize woocommerce settings fields for gocoin payment gateway.
              */
             function init_form_fields() {
-                $this->form_fields = array(
-                    'enabled' => array(
-                        'title' => __('Enable/Disable', 'woothemes'),
-                        'type' => 'checkbox',
-                        'label' => __('Enable GoCoin', 'woothemes'),
-                        'default' => 'yes'
-                    ),
-                    'title' => array(
-                        'title' => __('Title', 'woothemes'),
-                        'type' => 'text',
-                        'description' => __('Payment Gateway title in checkout page.', 'woothemes'),
-                        'default' => __('GoCoin', 'woothemes')
-                    ),
-                    'description' => array(
-                        'title' => __('Customer Message', 'woothemes'),
-                        'type' => 'textarea',
-                        'description' => __('Message which will show in checkout page.', 'woothemes'),
-                        'default' => 'You will be redirected to GoCoin.com to complete your purchase.'
-                    ),
-                    'clientId' => array(
-                        'title' => __('Client ID', 'woothemes'),
-                        'type' => 'text',
-                        'description' => __('Enter the Client ID for the App you created at GoCoin.com'),
-                    ),
-                    'clientSecret' => array(
-                        'title' => __('Client Secret', 'woothemes'),
-                        'type' => 'text',
-                        'description' => __('Enter the Client Secret for the App you created at GoCoin.com'),
-                    ),
-                    'accessToken' => array(
-                        'title' => __('Access Token', 'woothemes'),
-                        'type' => 'password',
-                        'description' => __('Enter the Access Token you created at GoCoin.com'),
-                    ),
-                );
+                  if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
+                    $this->php_version_allowed = true ;
+
+                    $this->form_fields = array(
+                        'enabled' => array(
+                            'title' => __('Enable/Disable', 'woothemes'),
+                            'type' => 'checkbox',
+                            'label' => __('Enable GoCoin', 'woothemes'),
+                            'default' => 'yes'
+                        ),
+                        'title' => array(
+                            'title' => __('Title', 'woothemes'),
+                            'type' => 'text',
+                            'description' => __('Payment Gateway title in checkout page.', 'woothemes'),
+                            'default' => __('GoCoin', 'woothemes')
+                        ),
+                        'description' => array(
+                            'title' => __('Customer Message', 'woothemes'),
+                            'type' => 'textarea',
+                            'description' => __('Message which will show in checkout page.', 'woothemes'),
+                            'default' => 'You will be redirected to GoCoin.com to complete your purchase.'
+                        ),
+                        'clientId' => array(
+                            'title' => __('Client ID', 'woothemes'),
+                            'type' => 'text',
+                            'description' => __('Enter the Client ID for the App you created at GoCoin.com'),
+                        ),
+                        'clientSecret' => array(
+                            'title' => __('Client Secret', 'woothemes'),
+                            'type' => 'text',
+                            'description' => __('Enter the Client Secret for the App you created at GoCoin.com'),
+                        ),
+                        'accessToken' => array(
+                            'title' => __('Access Token', 'woothemes'),
+                            'type' => 'password',
+                            'description' => __('Enter the Access Token you created at GoCoin.com'),
+                        ),
+                    );
+                 }
+                else{
+                      $this->php_version_allowed = false ;
+                      $this->form_fields = array(
+                            '' => array(
+                            'title'			=> __( 'PHP Version Error:', 'woocommerce' ),
+                            'type'			=> 'title',
+                            'description'   => __( '<span style="color:#ff0000;">The minimum PHP version required for GoCoin plugin is 5.3.0</span>', 'woocommerce' )
+                           ),
+                     );
+                }
             }
 
             /**
              * create settings page for gocoin gateway in woocommerce admin
              */
             public function admin_options() {
+                    if($this->php_version_allowed==false){
+                      echo '<h3 style="color:#ff0000;font-weight:bold">The minimum PHP version required for GoCoin plugin is 5.3.0</h3>  ';
+                      return false;
+                    }
                 ?>
                 <h3><?php _e('GoCoin Payment Gateway', 'woothemes'); ?></h3>
                 <p><?php _e('Allows Bitcoin payments via GoCoin.com.', 'woothemes'); ?></p>
@@ -138,7 +164,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         var url = "https://dashboard.gocoin.com/auth?response_type=code"
                                 + "&client_id=" + cid
                                 + "&redirect_uri=" + currentUrl
-                                + "&scope=user_read+merchant_read+invoice_read_write";
+                                + "&scope=user_read+invoice_read_write";
 
                         var strWindowFeatures = "location=yes,height=570,width=520,scrollbars=yes,status=yes";
                         var win = window.open(url, "_blank", strWindowFeatures);
@@ -257,7 +283,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
             function process_payment($order_id) {
                
                 global $woocommerce, $wpdb;
-
+                
                 $coin_type = $_POST['coin_type'];
 
                 $order = &new WC_Order($order_id);
@@ -297,10 +323,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 
                 $access_token = $this->settings['accessToken'];
 
-                if (empty($access_token)) {
+                if (empty($access_token)) { //-----------If  Token not found 
                     $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
                 }
-                   
+                else{    // If  Token  found 
                    try {
                     $user = GoCoin::getUser($access_token);
                     if ($user) {
@@ -308,12 +334,13 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                         if (!empty($merchant_id)) {
                             $invoice = GoCoin::createInvoice($access_token, $merchant_id, $options);
                             if (isset($invoice->errors)) {
-                                $order->add_order_note(var_export($invoice->error));
-                                $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
+                                 $errormsg = isset($invoice->errors->currency_code[0])? $invoice->errors->currency_code[0] : '';
+                                $order->add_order_note(var_export($errormsg));
+                                $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'.$errormsg));
                             } elseif (isset($invoice->error)) {
 
                                 $order->add_order_note(var_export($invoice->error));
-                                $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
+                                $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'.$invoice->error));
                             } elseif (isset($invoice->merchant_id) && $invoice->merchant_id != '' && isset($invoice->id) && $invoice->id != '') {
                                 $url = "https://gateway.gocoin.com/merchant/" . $invoice->merchant_id . "/invoices/" . $invoice->id;
                                 
@@ -342,16 +369,27 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                                     'redirect' => $url,
                                 );
                             }
+                            else {   //-----------  if $invoice is balnk 
+                                $order->add_order_note(var_export('invoice Variable is blank'));
+                                $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
+                            }
                         }
-                    } else {
-                        // $order->add_order_note(var_export($invoice->error));
+                        else {  //----------- If merchant_id Variable is blank 
+                           // $order->add_order_note(var_export('merchant_id Variable is blank'));
+                            $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
+                        }
+                    }  
+                    else {//----------- If user Variable is blank 
+                        //$order->add_order_note(var_export('user Variable is blank'));
                         $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
                     }
-                } catch (Exception $e) {
-                    //$order->add_order_note(var_export($invoice->error));
-                    $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
                 } 
-                
+                catch (Exception $e) {
+                       //----------- If  error in user creation from token
+                    // $order->add_order_note(var_export('error in user creation from token'));
+                    $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
+              } 
+             }
             }
             
             

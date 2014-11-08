@@ -33,11 +33,9 @@
                 $event              = $response->event;
                 $order_id           = (int) $response->payload->order_id;
                 $redirect_url       = $response->payload->redirect_url;
-                $transction_id      = $response->payload->id;
+                $invoice_id         = $response->payload->id;
                 $total              = $response->payload->base_price;
                 $status             = $response->payload->status;
-                $currency_id        = $response->payload->user_defined_1;
-                $secure_key         = $response->payload->user_defined_2;
                 $currency           = $response->payload->base_price_currency;
                 $currency_type      = $response->payload->price_currency;
                 $invoice_time       = $response->payload->created_at;
@@ -46,12 +44,12 @@
                 $merchant_id        = $response->payload->merchant_id;
                 $btc_price          = $response->payload->price;
                 $price              = $response->payload->base_price;
-                $url                = "https://gateway.gocoin.com/merchant/" . $merchant_id . "/invoices/" . $transction_id;
+                $url                = $response->payload->gateway_url;
                 $fprint             = $response->payload->user_defined_8;
                 
                 $iArray = array(
                                 'order_id'          => $order_id,
-                                'invoice_id'        => $transction_id,
+                                'invoice_id'        => $invoice_id,
                                 'url'               => $url,
                                 'status'            => $event,
                                 'btc_price'         => $btc_price,
@@ -65,7 +63,7 @@
                     );
                 
                 $i_id = getFPStatus($iArray);
-                if(!empty($i_id) && $i_id == $transction_id){
+                if(!empty($i_id) && $i_id == $invoice_id){
                 
                     updateTransaction('payment', $iArray);
                 
@@ -114,13 +112,13 @@
     
     function updateTransaction($type = 'payment', $details) {
         global $wpdb;
-        $feild_array = array('status'       =>  $details['status'] ,   
+        $field_array = array('status'       =>  $details['status'] ,   
                       'updated_time' =>  $details['updated_time']
                      );
         $where_array = array('invoice_id'       =>  $details['invoice_id'] ,   
                       'order_id' =>  $details['order_id']);
         
-       return  $wpdb->update($wpdb->prefix."gocoin_ipn",$feild_array,$where_array);
+       return  $wpdb->update($wpdb->prefix."gocoin_ipn",$field_array,$where_array);
     }
     
     function getNotifyData() {

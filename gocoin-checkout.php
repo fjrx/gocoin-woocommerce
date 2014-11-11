@@ -3,7 +3,7 @@
  *    Plugin Name: Official GoCoin WooCommerce Plugin
  *    Plugin URI: http://www.gocoin.com
  *    Description: This plugin adds the GoCoin Payment Gateway to your WooCommerce Shopping Cart.  WooCommerce is required.
- *    Version: 0.2.0
+ *    Version: 0.3.0
  *    Author: GoCoin
  */
 
@@ -57,9 +57,6 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 
                 // Actions
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(&$this, 'process_admin_options'));
-                
-                // DB Custom Db table
-                $this->getDbTable();
                 
             }
 
@@ -209,157 +206,81 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
              */
             function process_payment($order_id) {
                
-                global $woocommerce, $wpdb;
-                
+              global $woocommerce, $wpdb;
+
+              $access_token = $this->settings['accessToken'];
+              $merchant_id = $this->settings['merchantId'];
+
+              // Check to make sure we have an access token (API Key)
+              if (empty($access_token)) { 
+                  $woocommerce->add_error(__('Improper Gateway set up. Access token not found.'));
+              }
+              //Check to make sure we have a merchant ID
+              elseif (empty($merchant_id)) {
+                  $woocommerce->add_error(__('Improper Gateway set up. Merchant ID not found.'));
+              }
+              // Proceed
+              else{   
+                // Build the WooCommerce order, place it on-hold pending payment
                 $order = &new WC_Order($order_id);
                 $order->update_status('on-hold', __('Awaiting payment notification from GoCoin.com', 'woothemes'));
 
-                // invoice options
+                // Handle breaking route changes for after-purchase pages
                 if (version_compare(WOOCOMMERCE_VERSION, '2.1.0', '>=')) {
-                    // >= 2.1.0
                     $redirect_url = $this->get_return_url($this->order);
                 } else {
-                    // < 2.1.0
                     $redirect_url = add_query_arg('key', $order->order_key, add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_thanks_page_id'))));
                 }
+
                 $callback_url =  plugin_dir_url(__FILE__) .'gocoin-callback.php';
                 $currency = get_woocommerce_currency();
 
                 $options = array(
-                         "type"           => 'bill',
-                         "base_price"               => $order->order_total,
-                         "base_price_currency"      => $options['currency'],
-                         "callback_url"             => $callback_url,
-                         "redirect_url"             => $redirect_url,
-                         "order_id"                 => $order_id,
-                         "customer_name"            => $order->shipping_first_name . ' ' . $order->shipping_last_name,
-                         "customer_address_1"       => $order->shipping_address_1,
-                         "customer_address_2"       => $order->shipping_address_2,
-                         "customer_city"            => $order->shipping_city,
-                         "customer_region"          => $order->shipping_state,
-                         "customer_postal_code"     => $order->shipping_postcode,
-                         "customer_country"         => $order->shipping_country,
-                         "customer_phone"           => $order->shipping_phone,
-                         "customer_email"           => $order->shipping_email,
-                     );
-                $key                          = $this->getGUID();
-                $signature                    = $this->sign($options, $key);
-                $options['user_defined_8']    = $signature;
+                  "type"                     => 'bill',
+                  "base_price"               => $order->order_total,
+                  "base_price_currency"      => $currency,
+                  "callback_url"             => $callback_url,
+                  "redirect_url"             => $redirect_url,
+                  "order_id"                 => $order_id,
+                  "customer_name"            => $order->shipping_first_name . ' ' . $order->shipping_last_name,
+                  "customer_address_1"       => $order->shipping_address_1,
+                  "customer_address_2"       => $order->shipping_address_2,
+                  "customer_city"            => $order->shipping_city,
+                  "customer_region"          => $order->shipping_state,
+                  "customer_postal_code"     => $order->shipping_postcode,
+                  "customer_country"         => $order->shipping_country,
+                  "customer_phone"           => $order->shipping_phone,
+                  "customer_email"           => $order->shipping_email,
+                );
                 
-                $access_token = $this->settings['accessToken'];
-                $merchant_id = $this->settings['merchantId'];
-
-                if (empty($access_token)) { //-----------If  Token not found 
-                    $woocommerce->add_error(__('Improper Gateway set up. Access token not found.'));
+                // Sign invoice with access token
+                
+                if ($signature = $this->sign($options, $access_token)) {
+                  $options['user_defined_8'] = $signature;
                 }
-                elseif (empty($merchant_id)) {
-                    $woocommerce->add_error(__('Improper Gateway set up. Merchant ID not found.'));
+                try {
+                  $invoice = GoCoin::createInvoice($access_token, $merchant_id, $options);
+                  $url = $invoice->gateway_url;
+                  $woocommerce->cart->empty_cart();
+                  
+                  return array(
+                      'result' => 'success',
+                      'redirect' => $url,
+                  );
+                } catch (Exception $e) {
+                  $msg = $e->getMessage();
+                  $order->add_order_note(var_export($msg));
+                  $woocommerce->add_error(__($msg));
+                  error_log($msg);
                 }
-                else{    // If  Token  found 
-                   try {
-    
-                      $invoice = GoCoin::createInvoice($access_token, $merchant_id, $options);
-                      if (isset($invoice->errors)) {
-                          $errormsg = $invoice->message . '. ';
-                          foreach ($invoice->errors as $key => $value) {
-                            $errormsg .= $key . ' ' . $value;
-                          }
-
-                          $order->add_order_note(var_export($errormsg));
-                          $woocommerce->add_error(__($errormsg));
-                      
-                      } elseif (isset($invoice->id) && $invoice->id != '') {
-                          $url = $invoice->gateway_url;
-                          
-                          $woocommerce->cart->empty_cart();
-                          
-                          $json_array = array(
-                          'order_id'          => $invoice->order_id,
-                          'invoice_id'        => $invoice->id,
-                          'url'               => $url,
-                          'status'            => 'invoice_created',
-                          'btc_price'         => $invoice->price,
-                          'price'             => $invoice->base_price,
-                          'currency'          => $invoice->base_price_currency,
-                          'currency_type'     => $invoice->price_currency,
-                          'invoice_time'      => $invoice->created_at,
-                          'expiration_time'   => $invoice->expires_at,
-                          'updated_time'      => $invoice->updated_at,
-                          'fingerprint'       => $signature,    
-                          );
-                          
-                          //Insert data in custom table
-                          $this->addTransaction_v1('payment',$json_array); 
-                          return array(
-                              'result' => 'success',
-                              'redirect' => $url,
-                          );
-                      }
-                      else {   //-----------  if $invoice is balnk 
-                          $order->add_order_note(var_export('invoice Variable is blank'));
-                          $woocommerce->add_error(__('Error creating GoCoin invoice. Please try again or try another payment method.'));
-                      }
-                } 
-                catch (Exception $e) {
-                       //----------- If  error in user creation from token
-                    // $order->add_order_note(var_export('error in user creation from token'));
-                    $woocommerce->add_error(__('Error creating GoCoin invoice.  Please try again or try another payment method.'));
-              } 
-             }
-            }
-            
-            
-            public function getDbTable() {
-            global $wpdb;
-
-            $sql_ipn = "CREATE TABLE IF NOT EXISTS `".$wpdb->prefix.gocoin_ipn."` (
-                        `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-                        `order_id` int(10) unsigned DEFAULT NULL,
-                        `invoice_id` varchar(200) NOT NULL,
-                        `url` varchar(400) NOT NULL,
-                        `status` varchar(100) NOT NULL,
-                        `btc_price` decimal(16,8) NOT NULL,
-                        `price` decimal(16,8) NOT NULL,
-                        `currency` varchar(10) NOT NULL,
-                        `currency_type` varchar(10) NOT NULL,
-                        `invoice_time` datetime NOT NULL,
-                        `expiration_time` datetime NOT NULL,
-                        `updated_time` datetime NOT NULL,
-                        `fingerprint` varchar(250) NOT NULL,
-                        PRIMARY KEY (`id`)
-                      ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
-            return  $wpdb->get_results($wpdb->prepare($sql_ipn,''));
-           }
-              
-              
-            public function addTransaction_v1($type = 'payment', $details) {
-                  global $wpdb;
-                  return  $wpdb->insert($wpdb->prefix."gocoin_ipn",$details);
-            }  
-
-            
-            public function getGUID(){
-                if (function_exists('com_create_guid')){
-                    $guid = com_create_guid();
-                    $guid = str_replace("{", "", $guid);
-                    $guid = str_replace("}", "", $guid);
-                    return $guid;
-                }else{
-                    mt_srand((double)microtime()*10000);//optional for php 4.2.0 and up.
-                    $charid = strtoupper(md5(uniqid(rand(), true)));
-                    $hyphen = chr(45);// "-"
-                    $uuid = substr($charid, 0, 8).$hyphen
-                        .substr($charid, 8, 4).$hyphen
-                        .substr($charid,12, 4).$hyphen
-                        .substr($charid,16, 4).$hyphen
-                        .substr($charid,20,12);// .chr(125) //"}"
-                    return $uuid;
-                }
+                
+              }
             }
 
             public function sign($data, $uniquekey){
                 $query_str= '';
                 $include_params = array('price_currency','base_price','base_price_currency','order_id','customer_name','customer_city','customer_region','customer_postal_code','customer_country','customer_phone','customer_email');
+                // $data must be an array
                 if(is_array($data))
                 {
                     ksort($data);
@@ -370,28 +291,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                             $querystring = $querystring . $k . "=" . $v . "&"; 
                         }
                     }
+                    $query_str = substr($querystring, 0, strlen($querystring) - 1);
+                    $query_str = strtolower($query_str);
+                    $hash2 = hash_hmac("sha256", $query_str, $uniquekey, true);
+                    $hash2_encoded = base64_encode($hash2);
+                    return $hash2_encoded;
                 }
                 else
                 {
-                    if(isset($data->payload))
-                    {
-                        $payload_obj = $data->payload;
-                        $payload_arr = get_object_vars($payload_obj);
-                        ksort($payload_arr);
-                        $querystring = "";
-                        foreach($payload_arr as $k => $v)
-                        { 
-                            if(in_array($k, $include_params)){
-                                $querystring = $querystring . $k . "=" . $v . "&"; 
-                            }
-                        }
-                    }
+                    return false;
                 }
-                $query_str = substr($querystring, 0, strlen($querystring) - 1);
-                $query_str = strtolower($query_str);
-                $hash2 = hash_hmac("sha256", $query_str, $uniquekey, true);
-                $hash2_encoded = base64_encode($hash2);
-                return $hash2_encoded;
+                
             }
 
         }

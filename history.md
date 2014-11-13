@@ -1,9 +1,10 @@
 ## Changelog
 
 #### v0.3.0
-Improvements to UX
-Remove OAuth procedures in favor of API Keys
-Improve signature (sha256 HMAC)
+Multi-Currency support
+Improved logging 
+Order status accuracy/parity improvements
+
 
 #### v0.2.0 
 Improve plugin security and user experience.

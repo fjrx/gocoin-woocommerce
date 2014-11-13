@@ -8,6 +8,7 @@
  */
 
 require_once('gocoin-php/src/GoCoin.php');
+require_once('gocoin-util.php');
 require_once(ABSPATH . 'wp-admin/includes/plugin.php');
 
 session_start();
@@ -210,20 +211,24 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
               $access_token = $this->settings['accessToken'];
               $merchant_id = $this->settings['merchantId'];
+              $logger = new WC_Logger();
 
               // Check to make sure we have an access token (API Key)
-              if (empty($access_token)) { 
-                  $woocommerce->add_error(__('Improper Gateway set up. Access token not found.'));
+              if (empty($access_token)) {
+                  $msg = 'Improper Gateway set up. Access token not found.';
+                  $logger -> add('gocoin', $msg);
+                  $woocommerce->add_error(__($msg));
               }
               //Check to make sure we have a merchant ID
               elseif (empty($merchant_id)) {
-                  $woocommerce->add_error(__('Improper Gateway set up. Merchant ID not found.'));
+                  $msg = 'Improper Gateway set up. Merchant ID not found.';
+                  $logger -> add('gocoin', $msg);
+                  $woocommerce->add_error(__($msg));
               }
               // Proceed
-              else{   
-                // Build the WooCommerce order, place it on-hold pending payment
-                $order = &new WC_Order($order_id);
-                $order->update_status('on-hold', __('Awaiting payment notification from GoCoin.com', 'woothemes'));
+              else {   
+                // Build the WooCommerce order, is has status "Pending"
+                $order = new WC_Order($order_id);
 
                 // Handle breaking route changes for after-purchase pages
                 if (version_compare(WOOCOMMERCE_VERSION, '2.1.0', '>=')) {
@@ -253,11 +258,11 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                   "customer_email"           => $order->shipping_email,
                 );
                 
-                // Sign invoice with access token
-                
-                if ($signature = $this->sign($options, $access_token)) {
+                // Sign invoice with access token, if this fails we should still allow user to check out. 
+                if ($signature = Util::sign($options, $access_token)) {
                   $options['user_defined_8'] = $signature;
                 }
+
                 try {
                   $invoice = GoCoin::createInvoice($access_token, $merchant_id, $options);
                   $url = $invoice->gateway_url;
@@ -270,38 +275,10 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 } catch (Exception $e) {
                   $msg = $e->getMessage();
                   $order->add_order_note(var_export($msg));
+                  $logger->add('gocoin', $msg);
                   $woocommerce->add_error(__($msg));
-                  error_log($msg);
                 }
-                
               }
-            }
-
-            public function sign($data, $uniquekey){
-                $query_str= '';
-                $include_params = array('price_currency','base_price','base_price_currency','order_id','customer_name','customer_city','customer_region','customer_postal_code','customer_country','customer_phone','customer_email');
-                // $data must be an array
-                if(is_array($data))
-                {
-                    ksort($data);
-                    $querystring = "";
-                    foreach($data as $k => $v)
-                    { 
-                        if(in_array($k, $include_params)){
-                            $querystring = $querystring . $k . "=" . $v . "&"; 
-                        }
-                    }
-                    $query_str = substr($querystring, 0, strlen($querystring) - 1);
-                    $query_str = strtolower($query_str);
-                    $hash2 = hash_hmac("sha256", $query_str, $uniquekey, true);
-                    $hash2_encoded = base64_encode($hash2);
-                    return $hash2_encoded;
-                }
-                else
-                {
-                    return false;
-                }
-                
             }
 
         }

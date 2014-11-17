@@ -1,5 +1,8 @@
 ## Changelog
 
+#### v0.3.1
+Fixed Siganature creation and validation code
+
 #### v0.3.0
 Multi-Currency support
 Improved logging 

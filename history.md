@@ -1,5 +1,9 @@
 ## Changelog
 
+#### v0.3.1
+Modified Signature Creation and Validation
+
+
 #### v0.3.0
 Multi-Currency support
 Improved logging 

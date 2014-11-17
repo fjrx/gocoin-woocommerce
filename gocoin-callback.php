@@ -1,21 +1,22 @@
 <?php
 /**
 *   PHP functions to process gocoin payment
-*   Version: 0.3.0
+*   Version: 0.3.1
 * 
 */   
  
 /**
 * Get call back
-*/
+*/ 
     if ( !defined('ABSPATH') ) {
       require_once('../../../wp-load.php' );
     }
     require_once('gocoin-util.php');
 
 
-    function gocoin_callback() {				
+    function gocoin_callback() {        
                     
+ 
       global $woocommerce;
               
       $gateways = $woocommerce->payment_gateways->payment_gateways();
@@ -24,24 +25,31 @@
       if (!isset($gateways['gocoin'])) {
         return;
       }
-
       $gocoin = $gateways['gocoin'];
-      $data = Util::postData();
-              
-      if (isset($data->error))
+      $gocoin_setting     =    isset($gocoin->settings) && is_array($gocoin->settings)?$gocoin->settings:array();
+      
+      $key                =    isset($gocoin_setting['accessToken']) && !empty($gocoin_setting['accessToken'])?$gocoin_setting['accessToken']:'';
+        if(empty($key)){
+         return $logger->add('gocoin-callback', 'Api Key is  blank');
+        } 
+      $data = Util::postData(); 
+      if (isset($data->error)){
         return $logger->add('gocoin-callback', $data->error);
+      }
       else {
-        $key                = $gocoin -> settings -> accessToken;
+      //  $key                = $gocoin -> settings -> accessToken;
         $event_id           = $data -> id;
         $event              = $data -> event;
         $invoice            = $data -> payload;
-
+        $payload_arr        = get_object_vars($invoice) ;
+                 ksort($payload_arr);
         $signature          = $invoice -> user_defined_8;
-        $sig_comp           = Util::sign($invoice, $key);
+        
+        $sig_comp           = Util::sign($payload_arr, $key);
         $status             = $invoice -> status;
-        $order_id            = (int) $invoice -> order_id;
+        $order_id           = (int) $invoice -> order_id;
         $order              = WC_Order_Factory::get_order($order_id);
-
+        
         if (!$order) {
           $msg = "Order with id: " . $order_id . " was not found. Event ID: " . $event_id;
           return $logger->add('gocoin-callback', $msg);
@@ -49,9 +57,14 @@
        
         // Check that if a signature exists, it is valid
         if (isset($signature) && ($signature != $sig_comp)) {
-          $msg = "Signature : " . $signature . "does not match for Order: " . $order_id;
+          $msg = "Signature : " . $signature . "does not match for Order: " . $order_id ."$sig_comp        |    $signature ";
         }
-        else {
+        elseif (empty($signature) || empty($sig_comp) ) {
+          $msg = "Signature is blank for Order: " . $order_id;
+        }
+        elseif($signature == $sig_comp) {
+            
+            
           switch($event) {
 
             case 'invoice_created':
@@ -59,6 +72,10 @@
 
             case 'invoice_payment_received':
               switch ($status) {
+                 case 'ready_to_ship':
+                  $msg = 'Order ' . $order_id .' is paid and awaiting payment confirmation on blockchain.';
+                  $order->update_status('on-hold', __($msg, 'woothemes'));
+                  break; 
                 case 'paid':
                   $msg = 'Order ' . $order_id .' is paid and awaiting payment confirmation on blockchain.';
                   $order->update_status('on-hold', __($msg, 'woothemes'));
@@ -98,8 +115,4 @@
                     
     }
 
-
-
-    
-    gocoin_callback();
- 
+   gocoin_callback(); 

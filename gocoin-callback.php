@@ -1,7 +1,7 @@
 <?php
 /**
 *   PHP functions to process gocoin payment
-*   Version: 0.3.1
+*   Version: 0.3.0
 * 
 */   
  
@@ -74,14 +74,17 @@
               switch ($status) {
                  case 'ready_to_ship':
                   $msg = 'Order ' . $order_id .' is paid and awaiting payment confirmation on blockchain.';
+                  $msg .=" Price (Currency)  : ".  $invoice->price."(". $invoice->price_currency.")"; 
                   $order->update_status('on-hold', __($msg, 'woothemes'));
                   break; 
                 case 'paid':
                   $msg = 'Order ' . $order_id .' is paid and awaiting payment confirmation on blockchain.';
+                  $msg .=" Price (Currency)  : ".  $invoice->price."(". $invoice->price_currency.")"; 
                   $order->update_status('on-hold', __($msg, 'woothemes'));
                   break;
                 case 'underpaid':
                   $msg = 'Order ' . $order_id .' is underpaid.';
+                  $msg .=" Price (Currency)  : ".  $invoice->price."(". $invoice->price_currency.")"; 
                   $order->update_status('on-hold', __($msg, 'woothemes'));
                   break;
               }
@@ -89,16 +92,19 @@
 
             case 'invoice_merchant_review':
               $msg = 'Order ' . $order_id .' is under review. Action must be taken from the GoCoin Dashboard.';
+                  $msg .=" Price (Currency)  : ".  $invoice->price."(". $invoice->price_currency.")"; 
               $order->update_status('on-hold', __($msg, 'woothemes'));
               break;
 
             case 'invoice_ready_to_ship':
               $msg = 'Order ' . $order_id .' has been paid in full and confirmed on the blockchain.';
+              $msg .=" Price (Currency)  : ".  $invoice->price."(". $invoice->price_currency.")"; 
               $order->payment_complete();
               break;
 
             case 'invoice_invalid':
               $msg = 'Order ' . $order_id . ' is invalid and will not be confirmed on the blockchain.';
+              $msg .=" Price (Currency)  : ".  $invoice->price."(". $invoice->price_currency.")"; 
               $order->update_status('failed', __($msg, 'woothemes'));
               break;
 

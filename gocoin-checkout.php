@@ -217,13 +217,15 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
               if (empty($access_token)) {
                   $msg = 'Improper Gateway set up. Access token not found.';
                   $logger -> add('gocoin', $msg);
-                  $woocommerce->add_error(__($msg));
+                  //$woocommerce->add_error(__($msg));
+                  wc_add_notice($msg);
               }
               //Check to make sure we have a merchant ID
               elseif (empty($merchant_id)) {
                   $msg = 'Improper Gateway set up. Merchant ID not found.';
                   $logger -> add('gocoin', $msg);
-                  $woocommerce->add_error(__($msg));
+                  //$woocommerce->add_error(__($msg));
+                  wc_add_notice($msg);
               }
               // Proceed
               else {   
@@ -276,7 +278,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                   $msg = $e->getMessage();
                   $order->add_order_note(var_export($msg));
                   $logger->add('gocoin', $msg);
-                  $woocommerce->add_error(__($msg));
+                  //$woocommerce->add_error(__($msg));
+                  wc_add_notice($msg);
                 }
               }
             }
